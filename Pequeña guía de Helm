@@ -1,0 +1,93 @@
+### Comandos Esenciales
+```bash
+# REPOSITORIOS
+helm repo add grafana https://grafana.github.io/helm-charts
+helm repo list
+helm repo update
+
+# BUSCAR CHARTS
+helm search repo grafana
+helm search hub wordpress
+
+# INSTALAR
+helm install mi-app repo/chart
+helm install mi-app repo/chart -f valores.yaml
+helm install mi-app repo/chart --set key=value
+
+# VER
+helm list -A
+helm status mi-app -n namespace
+helm get values mi-app -n namespace
+
+# ACTUALIZAR
+helm upgrade mi-app repo/chart -n namespace
+helm upgrade mi-app repo/chart --reuse-values --set newkey=value
+
+# DESINSTALAR
+helm uninstall mi-app -n namespace
+
+# ROLLBACK
+helm history mi-app -n namespace
+helm rollback mi-app -n namespace
+
+# DEBUG
+helm install mi-app repo/chart --dry-run --debug
+```
+
+### Personalización con Values
+
+#### Método 1: --set (cambios rápidos)
+```bash
+helm install grafana grafana/grafana \
+  --set adminPassword=admin123 \
+  --set service.type=LoadBalancer
+```
+
+#### Método 2: Archivo values.yaml (RECOMENDADO)
+```yaml
+# mis-valores.yaml
+adminPassword: admin123
+service:
+  type: LoadBalancer
+  loadBalancerIP: 192.168.1.210
+persistence:
+  enabled: true
+  size: 10Gi
+```
+```bash
+helm install grafana grafana/grafana -f mis-valores.yaml
+```
+
+### Ejemplo Real: Prometheus Stack
+```bash
+# Ver valores por defecto
+helm show values prometheus-community/kube-prometheus-stack > valores-default.yaml
+
+# Crear valores personalizados
+cat <<EOF > mis-valores.yaml
+prometheus:
+  prometheusSpec:
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: local-path
+          resources:
+            requests:
+              storage: 20Gi
+grafana:
+  adminPassword: admin
+  persistence:
+    enabled: true
+    storageClassName: local-path
+    size: 5Gi
+EOF
+
+# Instalar
+helm install kube-prometheus-stack prometheus-community/kube-prometheus-stack \
+  -n monitoring --create-namespace \
+  -f mis-valores.yaml
+
+# Actualizar
+helm upgrade kube-prometheus-stack prometheus-community/kube-prometheus-stack \
+  -n monitoring \
+  -f mis-valores.yaml
