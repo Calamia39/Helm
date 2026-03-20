@@ -1,0 +1,46 @@
+controller:
+  adminPassword: "your-password-here"
+  
+  serviceType: LoadBalancer
+  loadBalancerIP: 192.168.1.203
+  
+  installPlugins:
+    - kubernetes:4029.v5712230ccb_f8
+    - workflow-aggregator:596.v8c21c963d92d
+    - git:5.2.0
+    - configuration-as-code:1670.v564dc8b_982d0
+    - sonarqube:2.17.2
+    - docker-workflow:580.vc0c340686b_54
+    - pipeline-stage-view:2.33
+    - blueocean:1.27.9
+    - github:1.37.3.1
+    - prometheus:2.3.1
+  
+  resources:
+    requests:
+      cpu: "500m"
+      memory: "2Gi"
+    limits:
+      cpu: "2000m"
+      memory: "4Gi"
+  
+  JCasC:
+    configScripts:
+      welcome-message: |
+        jenkins:
+          systemMessage: "Jenkins configured using Kubernetes and Helm"
+
+persistence:
+  enabled: true
+  storageClass: "local-path"
+  size: 50Gi
+
+agent:
+  enabled: true
+  resources:
+    requests:
+      cpu: "200m"
+      memory: "512Mi"
+    limits:
+      cpu: "1000m"
+      memory: "2Gi"

@@ -1,0 +1,80 @@
+prometheus:
+  prometheusSpec:
+    retention: 30d
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: local-path
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 50Gi
+    resources:
+      requests:
+        cpu: 500m
+        memory: 2Gi
+      limits:
+        cpu: 2000m
+        memory: 4Gi
+
+  service:
+    type: LoadBalancer
+    loadBalancerIP: 192.168.1.200
+
+grafana:
+  enabled: true
+  
+  adminPassword: "your-password"
+  
+  service:
+    type: LoadBalancer
+    loadBalancerIP: 192.168.1.201
+  
+  persistence:
+    enabled: true
+    storageClassName: local-path
+    size: 10Gi
+  
+  dashboardProviders:
+    dashboardproviders.yaml:
+      apiVersion: 1
+      providers:
+      - name: 'default'
+        orgId: 1
+        folder: ''
+        type: file
+        disableDeletion: false
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards/default
+  
+  dashboards:
+    default:
+      kubernetes-cluster:
+        gnetId: 7249
+        revision: 1
+        datasource: Prometheus
+      node-exporter:
+        gnetId: 1860
+        revision: 31
+        datasource: Prometheus
+
+alertmanager:
+  enabled: true
+  
+  service:
+    type: LoadBalancer
+    loadBalancerIP: 192.168.1.202
+  
+  config:
+    global:
+      resolve_timeout: 5m
+    route:
+      group_by: ['alertname', 'cluster']
+      group_wait: 10s
+      group_interval: 10s
+      repeat_interval: 12h
+      receiver: 'default'
+    receivers:
+    - name: 'default'
+      # Configurar con webhook, email, slack, etc.
